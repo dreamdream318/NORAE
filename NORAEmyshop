@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Shop - Login</title>
+
+<style>
+body{
+font-family: Arial, sans-serif;
+background:#f5f5f5;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+}
+
+.container{
+background:white;
+padding:25px;
+border-radius:10px;
+width:300px;
+box-shadow:0 0 10px rgba(0,0,0,0.1);
+}
+
+h2{
+text-align:center;
+}
+
+input{
+width:100%;
+padding:10px;
+margin:8px 0;
+border-radius:5px;
+border:1px solid #ccc;
+}
+
+button{
+width:100%;
+padding:10px;
+background:black;
+color:white;
+border:none;
+border-radius:5px;
+cursor:pointer;
+}
+
+button:hover{
+background:#333;
+}
+
+.toggle{
+text-align:center;
+margin-top:10px;
+cursor:pointer;
+color:blue;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+<h2 id="title">Login</h2>
+
+<input type="email" id="email" placeholder="Email">
+<input type="password" id="password" placeholder="Password">
+
+<button onclick="submitForm()">Login</button>
+
+<div class="toggle" onclick="toggleForm()">
+Don't have account? Sign up
+</div>
+</div>
+
+<script>
+let isLogin = true;
+
+function toggleForm(){
+isLogin = !isLogin;
+
+document.getElementById("title").innerText = isLogin ? "Login" : "Sign Up";
+
+document.querySelector("button").innerText = isLogin ? "Login" : "Sign Up";
+
+document.querySelector(".toggle").innerText =
+isLogin ? "Don't have account? Sign up" : "Already have account? Login";
+}
+
+function submitForm(){
+let email = document.getElementById("email").value;
+let password = document.getElementById("password").value;
+
+if(email === "" || password === ""){
+alert("Please fill all fields");
+return;
+}
+
+alert((isLogin ? "Logged in" : "Account created") + " for " + email);
+}
+</script>
+
+</body>
+</html>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Store</title>
+
+<style>
+body{
+font-family:Arial;
+background:#f6f6f6;
+padding:20px;
+}
+
+.header{
+display:flex;
+justify-content:space-between;
+margin-bottom:20px;
+}
+
+.product{
+background:white;
+padding:15px;
+margin-bottom:15px;
+border-radius:10px;
+box-shadow:0 0 5px rgba(0,0,0,0.1);
+}
+
+button{
+padding:8px 12px;
+border:none;
+background:black;
+color:white;
+border-radius:5px;
+cursor:pointer;
+}
+
+input{
+padding:8px;
+margin:5px 0;
+width:100%;
+}
+
+.admin{
+background:#fff3cd;
+padding:15px;
+margin-bottom:20px;
+border-radius:10px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+<h2>My Shop</h2>
+<button onclick="adminLogin()">Admin</button>
+</div>
+
+<div id="adminPanel" style="display:none" class="admin">
+
+<h3>Upload Product</h3>
+
+<input id="name" placeholder="Product name">
+<input id="price" placeholder="Price">
+<input id="image" placeholder="Image URL">
+<input id="link" placeholder="Seller Order Link">
+
+<button onclick="addProduct()">Add Product</button>
+
+</div>
+
+<div id="products"></div>
+
+<script>
+
+let adminPassword = "12345"; // change this
+let isAdmin = false;
+
+let products = [
+
+{
+name:"Perfume",
+price:"2000",
+image:"https://via.placeholder.com/150",
+link:"https://example.com"
+}
+
+];
+
+function adminLogin(){
+
+let pass = prompt("Enter admin password");
+
+if(pass === adminPassword){
+isAdmin = true;
+document.getElementById("adminPanel").style.display="block";
+renderProducts();
+}else{
+alert("Wrong password");
+}
+
+}
+
+function addProduct(){
+
+let name = document.getElementById("name").value;
+let price = document.getElementById("price").value;
+let image = document.getElementById("image").value;
+let link = document.getElementById("link").value;
+
+products.push({name,price,image,link});
+renderProducts();
+
+}
+
+function renderProducts(){
+
+let html="";
+
+products.forEach((p,index)=>{
+
+html += `
+<div class="product">
+
+<img src="${p.image}" width="100%">
+
+<h3>${p.name}</h3>
+
+<h4>Rs ${p.price}</h4>
+
+<button onclick="order('${p.link}')">Order</button>
+
+<button onclick="cancel('${p.name}')">Cancel</button>
+
+${isAdmin ? `
+<br><br>
+<button onclick="deleteProduct(${index})">Delete</button>
+` : ""}
+
+</div>
+`;
+
+});
+
+document.getElementById("products").innerHTML = html;
+
+}
+
+function deleteProduct(i){
+products.splice(i,1);
+renderProducts();
+}
+
+function order(link){
+
+alert("Redirecting to seller...");
+
+window.location.href = link;
+
+}
+
+function cancel(product){
+
+alert("Order cancelled for " + product);
+
+let sellerEmail = "seller@email.com";
+
+window.location.href =
+`mailto:${sellerEmail}?subject=Order Cancelled&body=Customer cancelled order for ${product}`;
+
+}
+
+renderProducts();
+
+</script>
+
+</body>
+</html>
+const express = require("express");
+const Stripe = require("stripe");
+const cors = require("cors");
+
+const app = express();
+app.use(express.json());
+app.use(cors());
+
+const stripe = Stripe("YOUR_STRIPE_SECRET_KEY");
+
+// Product example (your margin included)
+let products = [
+  {
+    id: 1,
+    name: "Perfume",
+    sellerPrice: 5,
+    yourPrice: 10,
+    sellerStripeAccount: "acct_SELLER123"
+  }
+];
+
+// CREATE PAYMENT WITH SPLIT
+app.post("/pay", async (req, res) => {
+  const { productId } = req.body;
+
+  const product = products.find(p => p.id === productId);
+
+  const session = await stripe.checkout.sessions.create({
+    payment_method_types: ["card"],
+    mode: "payment",
+    line_items: [
+      {
+        price_data: {
+          currency: "usd",
+          product_data: {
+            name: product.name
+          },
+          unit_amount: product.yourPrice * 100
+        },
+        quantity: 1
+      }
+    ],
+
+    success_url: "https://your-site.com/success",
+    cancel_url: "https://your-site.com/cancel",
+
+    payment_intent_data: {
+      transfer_data: {
+        destination: product.sellerStripeAccount // seller gets money
+      },
+      application_fee_amount: (product.yourPrice - product.sellerPrice) * 100 // your profit
+    }
+  });
+
+  res.json({ url: session.url });
+});
+
+app.listen(3000, () => console.log("Server running"));
+<button onclick="buy()">Buy Now</button>
+
+<script>
+function buy(){
+fetch("http://localhost:3000/pay", {
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({ productId:1 })
+})
+.then(res => res.json())
+.then(data => {
+window.location.href = data.url;
+});
+}
+</script>
